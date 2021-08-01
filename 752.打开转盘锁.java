@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.IntFunction;
 
 import jdk.nashorn.internal.ir.IfNode;
 
@@ -16,61 +17,65 @@ import jdk.nashorn.internal.ir.IfNode;
 // @lc code=start
 class Solution {
     public int openLock(String[] deadends, String target) {
-        if ("0000".equals(target)) {
-            return 0;
-        }
 
         Set<String> deads = new HashSet<>();
         for(String deadend : deadends){
             deads.add(deadend);
         }
-
-        if(deads.contains("0000")) return -1;
-
+        Set<String> visited = new HashSet<>();
+        
         int step = 0;
         Queue<String> queue = new LinkedList<>();
-        queue.offer("0000");
-        Set<String> seen = new HashSet<>();
-        seen.add("0000");
-
+        queue.add("0000");
+        visited.add("0000");
         while(!queue.isEmpty()){
-            ++step;
             int size = queue.size();
-            for(int i=0; i<size; i++){
-                String status = queue.poll();
-                for(String nextStatus:get(status)){
-                    if(!seen.contains(nextStatus) && !deads.contains(nextStatus)){
-                        if(nextStatus.equals(target)) return step;
-                        queue.offer(nextStatus);
-                        seen.add(nextStatus);
+            for(int i = 0; i < size; i++){
+                String curr = queue.poll();
+                if(deads.contains(curr)) continue;
+                if(curr.equals(target)) return step;
+
+                for(int j = 0; j < 4; j++){
+                    String up = plusOne(curr, j);
+                    if(!visited.contains(up)){
+                        queue.offer(up);
+                        visited.add(up);
+                    }
+                    String down = minusOne(curr, j);
+                    if(!visited.contains(down)){
+                        queue.offer(down);
+                        visited.add(down);
                     }
                 }
             }
+            step++;
         }
         return -1;
     }
 
-    private List<String> get(String status){
-        List<String> ret = new ArrayList<String>();
-        char[] array = status.toCharArray();
-        for (int i = 0; i < 4; ++i) {
-            char num = array[i];
-            array[i] = numPrev(num);
-            ret.add(new String(array));
-            array[i] = numSucc(num);
-            ret.add(new String(array));
-            array[i] = num;
+
+    private String plusOne(String s, int j){
+        char[] chs = s.toCharArray();
+        if(chs[j] == '9'){
+            chs[j] = '0';
+        }else{
+            chs[j] += 1;
         }
-        return ret;
+
+        return new String(chs);
     }
 
-    private char numPrev(char x) {
-        return x == '0' ? '9' : (char) (x - 1);
+    private String minusOne(String s, int j){
+        char[] chs = s.toCharArray();
+        if(chs[j] == '0'){
+            chs[j] = '9';
+        }else{
+            chs[j] -= 1;
+        }
+
+        return new String(chs);
     }
 
-    private char numSucc(char x) {
-        return x == '9' ? '0' : (char) (x + 1);
-    }
 
 }
 // @lc code=end
